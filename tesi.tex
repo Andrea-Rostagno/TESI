@@ -1,4 +1,6 @@
 \documentclass[a4paper,12pt]{article}
+\usepackage{graphicx}
+\usepackage{verbatim}
 \begin{document}
 	\title{\textbf{Introduzione alle Copule}}
 	\author{Rostagno}
@@ -216,14 +218,158 @@ Mostriamo ora degli esempi:
 	\item Copula di Frank: questa copula è una copula simmetrica che può catturare sia la dipendenza dalla coda superiore che quella dalla coda inferiore. Si riduce alla copula del prodotto se $\alpha=0$ e raggiunge i limiti inferiore e superiore di Frechet rispettivamente per $\alpha \to -\infty$ e $\alpha \to +\infty$. È definita dalla seguente formula: $C(v,z)=-\frac{1}{\alpha}\ln (\frac{1+(e^{-\alpha v}-1)(e^{-\alpha z}-1)}{e^{-\alpha}-1})$.
 \end{itemize}
 
+\begin{center}
+	\Huge \textbf{Preparazione dei dati e assunzioni} 
+\end{center}
 
+\vspace{1cm}
+\noindent\textbf{3.1 Raccolta dei dati} \\
 
+\noindent Il seguente dataset contiene dati storici sul DAX, che rappresentano prezzi o indici di mercato rilevanti. La raccolta dati fornisce i valori di Open, High, Low, Close partendo dal giorno 02/01/2020 ore 01:15:00 e terminando con il giorno 03/03/2022 ore 09:14:00. La raccolta e la gestione adeguata di tali dati sono fondamentali per analizzare le dipendenze tra strumenti finanziari tramite modelli di copula. Tramite questi dati calcoleremo i rendimenti giornalieri, un passaggio necessario per la modellazione delle dipendenze.\\
+\begin{figure}[h] % L'ambiente figure permette di gestire il posizionamento
+	\centering % Centra l'immagine
+	\includegraphics[width=0.8\textwidth]{dfDax.png} % Inserisce l'immagine con larghezza metà pagina
+	\caption{Inizio e fine del dataset} % Aggiunge una didascalia all'immagine
+	\label{fig:immagine} % Aggiunge un'etichetta per riferimenti interni
+\end{figure}
+\newpage
+\noindent\textbf{3.2 Pulizia e pre-elaborazione dei dati} \\
 
+\noindent I dati finanziari spesso includono anomalie come valori mancanti o outlier che devono essere gestiti prima dell'analisi. Saranno implementate le seguenti tecniche di pulizia dei dati:
 
+\begin{itemize}
+	\item \textbf{Gestione dei valori mancanti:} rimuovere eventuali righe con valori mancanti per evitare distorsioni.
+	\item \textbf{Gestione degli outlier:} utilizzare tecniche di filtraggio per identificare ed eliminare gli outlier, assicurando che l'analisi si concentri sui valori centrali più rappresentativi.
+\end{itemize}
+\textbf{Outlier:} 
+nel contesto dei dati azionari, un outlier (o valore anomalo) è un'osservazione che si discosta significativamente dalla norma o dalla tendenza generale del dataset. In altre parole, si tratta di un dato che è molto diverso rispetto agli altri valori presenti nel campione.\\
 
+\noindent Il motivo per cui vanno eliminati è che possono distorcere le analisi statistiche, poiché influenzano la media, la deviazione standard e altre misure di dispersione dei dati.\\
 
+\noindent Ecco alcune righe di codice utilizzate per "pulire" i dati:
+\begin{verbatim}
+	import pandas as pd
+	
+	# Load the data
+	data = pd.read_csv('DAX_3Y-1M.csv',index_col='DateTime',
+	parse_dates=True)
+	
+	# Drop rows with missing values
+	data=data.dropna()
+	
+	# Verifica e gestione degli outlier tramite interquartile
+	range (IQR)
+	Q1 = data.quantile(0.25)
+	Q3 = data.quantile(0.75)
+	IQR = Q3 - Q1
+	filtered_data = data[~((data < (Q1 - 1.5 * IQR)) | 
+	(data > (Q3 + 1.5 * IQR))).any(axis=1)]
+\end{verbatim}
+Circa 6000 righe di dati sono state eliminate da questo processo.\\
 
+\noindent\textbf{3.3 Trasformazione dei dati} \\
 
+\noindent Dopo la pulizia, è necessario trasformare i dati per ottenere una scala uniforme. Poiché i modelli di copula richiedono margini uniformi, trasformeremo i dati in rendimenti logaritmici per ottenere stazionarietà e calcoleremo i punteggi standardizzati:\\
+
+\noindent Ecco alcune righe di codice utilizzate per "trasformare" i dati:
+\begin{verbatim}
+	import numpy as np
+	
+	# Calcolo dei rendimenti logaritmici
+	
+	log_returns = np.log(filtered_data / 
+	filtered_data.shift(1)).dropna()
+	
+	# Standardizzazione dei dati
+	(sottraggo la media e divido per la deviazione standard):
+	
+	standardized_data = (log_returns - log_returns.mean())
+	/ log_returns.std()
+\end{verbatim}
+
+\begin{figure}[h] % L'ambiente figure permette di gestire il posizionamento
+	\centering % Centra l'immagine
+	\includegraphics[width=0.8\textwidth]{dfnormal.png} % Inserisce l'immagine con larghezza metà pagina
+	\caption{Rendimenti logaritmici standardizzati} % Aggiunge una didascalia all'immagine
+	\label{fig:immagine} % Aggiunge un'etichetta per riferimenti interni
+\end{figure}
+\newpage
+\noindent\textbf{3.4 Normalizzazione} \\
+
+\noindent Per applicare correttamente i modelli di copula, i dati devono essere trasformati in una distribuzione uniforme sull'intervallo $[0,1]$. Questo passaggio permette ai dati di adattarsi meglio alla funzione di copula che verrà utilizzata per modellare le dipendenze:\\
+\begin{verbatim}
+	from scipy.stats import norm
+	
+	# Normalizzazione tramite la funzione di 
+	distribuzione cumulativa (CDF)
+	
+	uniform_data = norm.cdf(standardized_data)
+\end{verbatim}
+
+\begin{figure}[h] % L'ambiente figure permette di gestire il posizionamento
+	\centering % Centra l'immagine
+	\includegraphics[width=0.8\textwidth]{norm.png} % Inserisce l'immagine con larghezza metà pagina
+	\caption{Dati uniformati all'intervallo [0,1]} % Aggiunge una didascalia all'immagine
+	\label{fig:immagine} % Aggiunge un'etichetta per riferimenti interni
+\end{figure}
+
+\noindent\textbf{3.5 Assunzioni nei Modelli di Copula } \\
+
+\noindent Per l'uso corretto dei modelli di copula, è essenziale discutere alcune assunzioni chiave:\\
+
+\begin{itemize}
+	\item \textbf{Uniformità marginale:} l'assunzione primaria nella modellazione delle copule è che le variabili marginali abbiano distribuzioni uniformi. Abbiamo utilizzato la funzione di distribuzione cumulativa per garantire questa uniformità.
+	\item \textbf{Struttura di dipendenza:} i modelli di copula modellano la struttura di dipendenza tra le variabili senza fare ipotesi sui margini. Ciò significa che, dopo la trasformazione, possiamo utilizzare diversi tipi di copule per analizzare come i vari strumenti finanziari si muovono insieme.
+	\item \textbf{Stazionarietà:} è importante che i dati siano stazionari, ovvero che le loro proprietà statistiche (come media e varianza) siano costanti nel tempo. Abbiamo utilizzato la differenziazione logaritmica per rendere i dati stazionari.
+	\item \textbf{Normalità:} per l'utilizzo di una copula Gaussiana, i margini devono approssimare la normalità. Sebbene non sia strettamente necessario per altre copule come la t-Copula, una trasformazione per avvicinarsi alla normalità può essere utile per semplificare l'analisi.
+\end{itemize}
+
+\noindent\textbf{3.6 Distribuzione dei rendimenti} \\
+
+\begin{figure}[h] % L'ambiente figure permette di gestire il posizionamento
+	\centering % Centra l'immagine
+	\includegraphics[width=0.8\textwidth]{rendimenti.png} % Inserisce l'immagine con larghezza metà pagina
+	\label{fig:immagine} % Aggiunge un'etichetta per riferimenti interni
+\end{figure}
+
+\noindent Ecco la distribuzione dei rendimenti logaritmici del DAX, calcolata su un subset dei dati disponibili. La distribuzione mostra la tipica forma a campana, con alcune code più pesanti, suggerendo la presenza di eventi estremi più frequenti rispetto a una normale distribuzione Gaussiana. Questa caratteristica supporta l'idea di utilizzare copule come la Student-t, che meglio cattura queste dipendenze nelle code.\\
+\newpage
+\noindent Di seguito la matrice di correlazione tra i rendimenti logaritmici delle diverse colonne di prezzo (Open, High, Low, Close) sempre del subset.
+
+\begin{figure}[h] % L'ambiente figure permette di gestire il posizionamento
+	\centering % Centra l'immagine
+	\includegraphics[width=0.8\textwidth]{corr.png} % Inserisce l'immagine con larghezza metà pagina
+	\caption{Matrice di correlazione} % Aggiunge una didascalia all'immagine
+	\label{fig:immagine} % Aggiunge un'etichetta per riferimenti interni
+\end{figure}
+
+\noindent\textbf{3.7 Assunzioni generali}\\
+
+\noindent Considerando i dati analizzati e i risultati ottenuti dalle elaborazioni, possiamo formulare le seguenti assunzioni per l'applicazione dei modelli di copula:
+
+\begin{enumerate}
+	\item \textbf{Uniformità marginale}\\
+	Una delle assunzioni principali per applicare i modelli di copula è che le variabili marginali siano uniformi. Nel nostro caso, i rendimenti logaritmici calcolati per le diverse variabili (Open, High, Low, Close) sono stati trasformati in modo tale da poter essere considerati approssimativamente stazionari, ma non sono ancora stati resi uniformi. Per l'applicazione delle copule, sarà necessario trasformare i rendimenti normalizzati in una distribuzione uniforme sull'intervallo [0,1], ad esempio usando la funzione di distribuzione cumulativa empirica. Questo passaggio garantisce che le dipendenze tra variabili siano modellate correttamente senza distorsioni derivanti dalle distribuzioni marginali.
+	\item \textbf{Stazionarietà dei dati}\\
+	Per applicare correttamente i modelli di copula, è necessario che le serie temporali siano stazionarie, ovvero che le proprietà statistiche come media e varianza siano costanti nel tempo. Abbiamo trasformato i prezzi in rendimenti logaritmici per ottenere una serie più stazionaria rispetto ai dati originali di prezzo. Tuttavia, è possibile che ci siano ancora componenti non stazionarie, come trend residui o stagionalità, che potrebbero influire sui risultati. La verifica e il trattamento di eventuali residui non stazionari sono fondamentali per garantire la validità dei modelli di copula.
+	\item \textbf{Struttura di dipendenza}\\
+	L'analisi dei rendimenti logaritmici ha mostrato una correlazione positiva tra le variabili, sebbene con valori differenti per ciascuna coppia (ad esempio, correlazione relativamente più alta tra High e Close, e più bassa tra Open e Close). Questa osservazione implica che esiste una struttura di dipendenza tra le variabili di prezzo, che va oltre la correlazione lineare. Le copule ci permetteranno di catturare meglio questa dipendenza, soprattutto nei casi in cui le correlazioni sono condizionate da situazioni estreme (code pesanti).
+	\item \textbf{Dipendenze di coda}\\
+	Osservando la distribuzione dei rendimenti logaritmici, è evidente che la distribuzione presenta code più pesanti rispetto a una normale distribuzione Gaussiana. Questo suggerisce una maggiore probabilità di eventi estremi (sia positivi che negativi), specialmente durante periodi di volatilità del mercato. Pertanto, è ragionevole assumere che le variabili presentino dipendenze di coda, rendendo modelli come la copula di Student-t o la copula Clayton adatti per catturare le correlazioni nelle code inferiori, particolarmente durante i ribassi di mercato.
+	\item \textbf{Non-normalità delle distribuzioni marginali}\\
+	I rendimenti logaritmici non seguono una distribuzione normale; piuttosto, mostrano asimmetria e code più pesanti. Sebbene la copula Gaussiana possa essere utilizzata per una prima analisi, è preferibile utilizzare copule come la Student-t per gestire deviazioni dalla normalità, particolarmente utili per modellare le code e le correlazioni durante gli eventi estremi.
+	\item \textbf{Asimmetria nelle dipendenze}\\
+	La matrice di correlazione calcolata tra i rendimenti (Open, High, Low, Close) mostra differenze nei livelli di correlazione tra le diverse variabili. Questa asimmetria nelle correlazioni suggerisce che alcuni modelli di copula, come la Clayton (per le code inferiori) o la Gumbel (per le code superiori), potrebbero fornire una descrizione più accurata delle dipendenze, rispetto a modelli simmetrici come la copula Gaussiana.
+	\item \textbf{Condizioni di diversificazione}\\
+	La copula di Frank potrebbe essere adatta per modellare le dipendenze tra le variabili che non mostrano comportamenti particolarmente forti nelle code (ovvero, dipendenze moderate e stabili). Tuttavia, i dati indicano la presenza di code pesanti, quindi questa copula potrebbe essere utilizzata solo come confronto con modelli che catturano meglio le dipendenze estreme.
+\end{enumerate}
+
+\noindent\textbf{Conclusione sulle assunzioni}\\
+
+\noindent Uniformità e stazionarietà sono requisiti fondamentali per l'applicazione dei modelli di copula. I dati sono stati trasformati per soddisfare parzialmente queste assunzioni.\\
+Dipendenze di coda e non-normalità suggeriscono l'uso di copule robuste come la Student-t o modelli asimmetrici come la Clayton o la Gumbel per catturare meglio le relazioni tra variabili durante condizioni di stress di mercato.\\
+La asimmetria delle correlazioni evidenziata dalla matrice di correlazione indica la necessità di copule che possano gestire differenti tipi di dipendenze nelle code.\\
+Queste assunzioni ci permettono di scegliere il modello di copula più appropriato per analizzare le dipendenze tra i rendimenti del DAX e comprendere meglio il comportamento del mercato in diverse condizioni economiche.
 
 
 
