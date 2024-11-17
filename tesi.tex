@@ -1,6 +1,8 @@
 \documentclass[a4paper,12pt]{article}
 \usepackage{graphicx}
 \usepackage{verbatim}
+\usepackage{amsmath}
+\usepackage{enumitem}
 \begin{document}
 	\title{\textbf{Introduzione alle Copule}}
 	\author{Rostagno}
@@ -370,6 +372,145 @@ Circa 6000 righe di dati sono state eliminate da questo processo.\\
 Dipendenze di coda e non-normalità suggeriscono l'uso di copule robuste come la Student-t o modelli asimmetrici come la Clayton o la Gumbel per catturare meglio le relazioni tra variabili durante condizioni di stress di mercato.\\
 La asimmetria delle correlazioni evidenziata dalla matrice di correlazione indica la necessità di copule che possano gestire differenti tipi di dipendenze nelle code.\\
 Queste assunzioni ci permettono di scegliere il modello di copula più appropriato per analizzare le dipendenze tra i rendimenti del DAX e comprendere meglio il comportamento del mercato in diverse condizioni economiche.
+
+\begin{center}
+	\Huge \textbf{Stima dei Parametri delle Copule e Implementazione Pratica} 
+\end{center}
+
+\vspace{1cm}
+\noindent\textbf{4.1 Introduzione alla Stima dei Parametri delle Copule} \\
+
+\noindent La stima dei parametri delle copule è cruciale per descrivere con precisione il tipo e il grado di dipendenza tra variabili. In particolare, in finanza:
+
+\begin{itemize}
+	\item \textbf{Gstione del rischio: }La corretta modellazione della dipendenza è essenziale per calcolare indicatori come il Value-at-Risk (VaR) e il Conditional VaR (CVaR), nonché per valutare il rischio di portafoglio in condizioni estreme.
+	\item \textbf{Ottimizzazione del portafoglio: }La conoscenza della dipendenza consente di costruire portafogli ottimizzati, tenendo conto delle correlazioni non lineari tra asset.
+	\item \textbf{Eventi estremi: }La modellazione della tail dependence (dipendenza nelle code) permette di catturare correttamente la probabilità di eventi congiunti estremi, come crisi finanziarie o fallimenti simultanei di istituzioni.
+\end{itemize}
+L'importanza della stima risiede nella capacità di rappresentare accuratamente la struttura di dipendenza osservata nei dati, migliorando l'affidabilità e la precisione dei modelli finanziari.\\
+Per stimare i parametri delle copule, esistono diversi metodi, ciascuno con vantaggi e limitazioni:
+\begin{enumerate}
+	\item \textbf{Metodo della Massima Verosimiglianza (MLE - Maximum Likelihood Estimation):} Massimizzando la funzione di verosimiglianza costruita sui dati, si ottengono degli stimatori per i vari parametri.
+	\item \textbf{Metodo dei Momenti} Confronta i momenti osservati con qulli torici: $\frac{\sum_{i=1}^n X_i^1}{n} = \mu_1$, $\frac{\sum_{i=1}^n X_i^2}{n} = \mu_2
+	$,  $\frac{\sum_{i=1}^n X_i^p}{n} = \mu_p$
+	\item \textbf{Metodi Bayesiani: }Utilizzano distribuzioni a priori per stimare i parametri delle copule e aggiornano le stime con i dati osservati.
+\end{enumerate}
+La stima dei parametri delle copule rappresenta un passaggio fondamentale nella modellazione della dipendenza tra variabili finanziarie. La scelta del metodo più appropriato dipende dalla complessità del modello, dalla disponibilità di dati e dai vincoli computazionali. L'utilizzo corretto delle copule migliora significativamente l'accuratezza dei modelli finanziari, con importanti applicazioni nella gestione del rischio, nella costruzione di portafogli e nella previsione di eventi estremi.\\
+\newline
+Nelle prossime pagine mostreremo un'analisi dettagliata dei vari metodi di stima (anche un implementazione Python) e un applicazione pratica utilizzando i dati del DAX.\\
+\newline
+\noindent\textbf{4.2 Metodi di stima dei parametri} \\
+\begin{itemize}
+	\item \textbf{Stima di Massima Verosimiglianza (MLE)}\\
+	Il Metodo della Massima Verosimiglianza (MLE) è una delle tecniche più utilizzate per la stima dei parametri delle copule grazie alla sua efficienza e alla solidità teorica. Questo metodo si basa sul principio di determinare i parametri che massimizzano la probabilità (o verosimiglianza) dei dati osservati sotto il modello scelto.\\
+	\newpage
+	Spieghiamo il funzionamento del MLE:
+	\begin{enumerate}
+		\item Supponiamo di avere \(n\) osservazioni \(\mathbf{x}_i = (x_{i1}, x_{i2}, \ldots, x_{id})\), con \(i = 1, \ldots, n\), da una distribuzione congiunta \(F(\mathbf{x}; \boldsymbol{\theta})\), dove \(\boldsymbol{\theta}\) rappresenta il vettore dei parametri della copula. La funzione di verosimiglianza si costruisce come:
+		
+		\[
+		L(\boldsymbol{\theta}; \mathbf{x}_1, \ldots, \mathbf{x}_n) = \prod_{i=1}^n f(\mathbf{x}_i; \boldsymbol{\theta}),
+		\]
+		
+		dove \(f(\mathbf{x}_i; \boldsymbol{\theta})\) è la densità congiunta.
+		\item Utilizzando il teorema di Sklar, la densità congiunta può essere scritta come:
+		
+		\[
+		f(\mathbf{x}_i; \boldsymbol{\theta}) = c(F_1(x_{i1}), \ldots, F_d(x_{id}); \boldsymbol{\theta}) \prod_{j=1}^d f_j(x_{ij}),
+		\]
+		
+		dove:
+		\begin{itemize}
+			\item \(f_j(x_{ij})\) sono le densità marginali delle variabili,
+			\item \(c(\cdot; \boldsymbol{\theta})\) è la densità della copula.
+		\end{itemize}
+		
+		Se le marginali sono note, la funzione di verosimiglianza dipende esclusivamente dalla copula:
+		
+		\[
+		L(\boldsymbol{\theta}) = \prod_{i=1}^n c(F_1(x_{i1}), \ldots, F_d(x_{id}); \boldsymbol{\theta}).
+		\]
+		\item La stima \(\hat{\boldsymbol{\theta}}\) dei parametri si ottiene massimizzando il logaritmo della funzione di verosimiglianza (per semplificare i calcoli):
+		
+		\[
+		\hat{\boldsymbol{\theta}} = \arg\max_{\boldsymbol{\theta}} \ell(\boldsymbol{\theta}),
+		\]
+		
+		dove:
+		
+		\[
+		\ell(\boldsymbol{\theta}) = \sum_{i=1}^n \log c(F_1(x_{i1}), \ldots, F_d(x_{id}); \boldsymbol{\theta}).
+		\]
+		
+		Questa ottimizzazione è spesso effettuata con algoritmi numerici, come il metodo di Newton-Raphson o tecniche di ottimizzazione stocastica.
+		
+	\end{enumerate}
+	Dopo aver spiegato come funziona il metodo matematicamente, forniamo dei motivi per cui l'MLE è comunemente utilizzato per le copule:
+	\begin{enumerate}
+		\item \textbf{Efficienza statistica:}\\
+		L'MLE produce stime consistenti, non distorte e asintoticamente efficienti sotto ipotesi regolari, garantendo la massima accuratezza possibile per grandi campioni.
+		
+		\item \textbf{Flessibilità:}\\
+		L'MLE è adatta sia a copule con marginali note che a copule con marginali sconosciute (in quest'ultimo caso, si utilizza la variante del \textit{Pseudo-MLE}).
+		
+		\item \textbf{Compatibilità con il teorema di Sklar:}\\
+		Grazie alla separazione tra marginali e dipendenza, l'MLE consente di stimare parametri che riflettono esclusivamente la struttura di dipendenza, riducendo l'influenza delle marginali.
+		
+		\item \textbf{Applicazioni pratiche:}\\
+		In ambito finanziario, l'MLE è particolarmente efficace per stimare copule complesse (es. copule \(t\) o Archimedee) che modellano fenomeni come la \textit{tail dependence} (dipendenza nelle code).
+		
+		\item \textbf{Supporto computazionale:}\\
+		L'MLE è ben supportata da software statistici e librerie numeriche (ad esempio, Python, R, MATLAB), rendendola una scelta praticabile anche per problemi reali con dataset di grandi dimensioni.
+	\end{enumerate}
+	Il metodo della Massima Verosimiglianza è una tecnica robusta e versatile per la stima dei parametri delle copule, garantendo precisione ed efficienza nella modellazione della dipendenza. La sua applicazione, unita alla separazione tra marginali e struttura di dipendenza, ne fa uno strumento indispensabile nella modellazione finanziaria e in molte altre discipline quantitative.\\
+	
+	Vediamo anche qualche limitazione di questo metodo:
+	\begin{enumerate}[label=\arabic*.]
+		\item \textbf{Complessità Computazionale:}
+		\begin{itemize}
+			\item La funzione di verosimiglianza può diventare complessa da calcolare, specialmente per modelli con molte variabili o copule con parametri complessi.
+			\item Richiede spesso ottimizzazione numerica iterativa (es. Newton-Raphson, metodi stocastici), che può essere lenta o soggetta a problemi di convergenza.
+		\end{itemize}
+		
+		\item \textbf{Sensibilità ai Dati:}
+		\begin{itemize}
+			\item L'MLE assume che il modello scelto sia corretto. In ambito finanziario, però, i dati reali possono violare le ipotesi standard (es. non normalità delle marginali, dati mancanti, errori di misurazione).
+			\item Le stime possono risultare inefficaci se il modello non rappresenta bene i dati.
+		\end{itemize}
+		
+		\item \textbf{Dipendenza dalle Condizioni Asintotiche:}
+		\begin{itemize}
+			\item L'efficienza dell'MLE è garantita solo per campioni sufficientemente grandi. Nei dataset finanziari con pochi dati (es. eventi estremi rari), l'MLE può essere instabile.
+		\end{itemize}
+		
+		\item \textbf{Problemi di Robustezza:}
+		\begin{itemize}
+			\item L'MLE è sensibile agli \textit{outlier}, che sono comuni nei dati finanziari (ad esempio, picchi improvvisi di volatilità).
+			\item Per mitigare questo problema, possono essere necessari metodi alternativi.
+		\end{itemize}
+		
+		\item \textbf{Vincoli Numerici e Positività:}
+		\begin{itemize}
+			\item Nel caso di copule multivariate, come la copula Gaussiana o t-Student, la matrice di correlazione deve essere positiva definita. 
+			\item L'imposizione di vincoli aggiunge complessità computazionale.
+		\end{itemize}
+	\end{enumerate}
+	\textbf{Considerazioni finali}\\
+	L'MLE è uno strumento potente e teoricamente solido per la stima dei parametri in contesti finanziari. Tuttavia, la sua applicazione pratica deve tenere conto delle caratteristiche specifiche dei dati finanziari e della complessità computazionale del modello scelto. In alternativa, quando i limiti dell'MLE diventano problematici, possono essere considerati altri approcci, come il metodo dei momenti, il metodo bayesiano o il metodo pseudo-MLE.
+\end{itemize}
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
