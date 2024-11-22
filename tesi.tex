@@ -496,7 +496,258 @@ Nelle prossime pagine mostreremo un'analisi dettagliata dei vari metodi di stima
 		\end{itemize}
 	\end{enumerate}
 	\textbf{Considerazioni finali}\\
-	L'MLE è uno strumento potente e teoricamente solido per la stima dei parametri in contesti finanziari. Tuttavia, la sua applicazione pratica deve tenere conto delle caratteristiche specifiche dei dati finanziari e della complessità computazionale del modello scelto. In alternativa, quando i limiti dell'MLE diventano problematici, possono essere considerati altri approcci, come il metodo dei momenti, il metodo bayesiano o il metodo pseudo-MLE.
+	L'MLE è uno strumento potente e teoricamente solido per la stima dei parametri in contesti finanziari. Tuttavia, la sua applicazione pratica deve tenere conto delle caratteristiche specifiche dei dati finanziari e della complessità computazionale del modello scelto. In alternativa, quando i limiti dell'MLE diventano problematici, possono essere considerati altri approcci, come il metodo dei momenti, il metodo bayesiano o il metodo pseudo-MLE.\\
+	
+	\textbf{Implementazione Python:}
+	\item \textbf{Metodo dei momenti}\\
+	Il metodo dei momenti è una tecnica di stima che si basa sull'equiparazione dei momenti teorici di una distribuzione con i momenti campionari calcolati dai dati osservati. Nel contesto delle copule, il metodo può essere utilizzato per stimare i parametri che descrivono la dipendenza tra le variabili aleatorie, garantendo coerenza tra la struttura di dipendenza modellata e quella osservata.\\
+	
+	\textbf{Applicazione alle copule}\\
+	Le copule sono funzioni che legano le distribuzioni marginali di variabili aleatorie alla loro distribuzione congiunta, separando la dipendenza dalla struttura marginale. Per stimare i parametri di una copula con il metodo dei momenti:
+	
+	\begin{enumerate}[label=\arabic*.]
+		\item \textbf{Scelta dei momenti di interesse:} Si identificano statistiche che catturano la dipendenza (ad esempio, Kendall's \(\tau\), Spearman's \(\rho\) o altre misure di concordanza).
+		
+		\item \textbf{Calcolo dei momenti campionari:} Si calcolano i momenti empirici dai dati osservati, ad esempio, calcolando \(\tau\) o \(\rho\) sui campioni.
+		
+		\item \textbf{Imposizione di uguaglianza:} I momenti teorici della copula, funzione dei parametri da stimare, vengono eguagliati ai momenti campionari.
+		
+		\item \textbf{Risoluzione del sistema:} Si risolvono le equazioni risultanti per determinare i parametri della copula.
+	\end{enumerate}
+	
+	\textbf{Ambiti di Applicazione}\\
+	Il metodo dei momenti applicato alle copule trova largo impiego in settori dove è cruciale modellare la dipendenza tra variabili, come:
+	\begin{itemize}
+		\item \textbf{Finanza:} Per analizzare la dipendenza tra rendimenti di asset.
+		\item \textbf{Assicurazioni e gestione del rischio:} Per modellare eventi estremi correlati, come sinistri catastrofici.
+	\end{itemize}
+	
+	Elenchiamo alcuni pro e contro di utilizzare questo metodo.\\
+	
+	\textbf{Vantaggi:}
+	\begin{itemize}
+		\item \textbf{Semplicità computazionale:} Rispetto ad altri metodi (ad esempio, la massima verosimiglianza), il metodo dei momenti è spesso più semplice da implementare e richiede meno assunzioni sul modello.
+		\item \textbf{Intuitività:} L'approccio è facilmente interpretabile grazie al legame diretto con misure di dipendenza osservabili come \(\tau\) e \(\rho\).
+		\item \textbf{Robustezza:} È meno sensibile a errori nelle specifiche delle distribuzioni marginali.
+	\end{itemize}
+	
+	\textbf{Svantaggi:}
+	\begin{itemize}
+		\item \textbf{Perdita di efficienza:} Gli stimatori ottenuti non sono sempre efficienti, il che significa che potrebbero avere una varianza maggiore rispetto a quelli della massima verosimiglianza.
+		\item \textbf{Dipendenza dalla scelta dei momenti:} La qualità della stima dipende fortemente dalla scelta dei momenti, che potrebbero non catturare adeguatamente la complessità della dipendenza.
+		\item \textbf{Limitazioni con dati scarsi:} Con campioni piccoli, i momenti campionari potrebbero essere poco rappresentativi.
+	\end{itemize}
+	
+	Un altro fattore da tenere in considerazione è il numero di variabili a cui è applicato, in quanto potrebbe avere delle limitazioni come:\\
+	\begin{enumerate}[label=\arabic*.]
+		\item \textbf{Difficoltà di Generalizzazione in Dimensioni Elevate:} \\
+		In contesti multivariati con molte variabili, il metodo dei momenti può risultare impraticabile, poiché:
+		\begin{itemize}
+			\item Le misure di concordanza (ad esempio, Kendall's \(\tau\)) diventano difficili da calcolare per coppie di variabili.
+			\item Il numero di parametri della copula aumenta esponenzialmente con la dimensione, rendendo il sistema di equazioni derivato dai momenti difficile da risolvere.
+		\end{itemize}
+		
+		\item \textbf{Sensibilità ai Dati Empirici:} \\
+		I momenti campionari utilizzati per la stima sono sensibili alla presenza di outlier o dati scarsi, introducendo bias significativi nella stima dei parametri.
+		
+		\item \textbf{Rappresentazione Limitata della Dipendenza:} \\
+		Il metodo dei momenti si basa su misure sintetiche della dipendenza (come \(\tau\) o \(\rho\)), che potrebbero non cogliere adeguatamente relazioni complesse, come:
+		\begin{itemize}
+			\item Dipendenze non lineari.
+			\item Code pesanti o asimmetrie estreme.
+		\end{itemize}
+		
+		\item \textbf{Convergenza Non Ottimale:} \\
+		Gli stimatori ottenuti con il metodo dei momenti non sono necessariamente efficienti in termini di varianza, soprattutto quando i dati presentano una struttura di dipendenza complessa.
+	\end{enumerate}
+	\newpage
+	
+	Abbiamo parlato più volte della misura $\tau$ di Kendall, spieghiamo meglio in cosa consiste.\\
+	
+	Il tau di Kendall è una misura di concordanza per due variabili casuali continue. È definito come la differenza tra la probabilità di concordanza e la probabilità di discordanza. Può essere interpretato come la probabilità che due coppie di osservazioni scelte a caso dal campione siano concordanti meno la probabilità che siano discordanti
+	\section*{Principio di base}
+	
+	Dato un insieme di \( n \) coppie di dati \((x_1, y_1), (x_2, y_2), \ldots, (x_n, y_n)\), il Kendall's Tau si basa sul confronto tra tutte le coppie di osservazioni:
+	
+	\begin{enumerate}[label=\arabic*.]
+		\item \textbf{Coppia concordante:} \\
+		Una coppia \((x_i, y_i)\) e \((x_j, y_j)\) è \textit{concordante} se i segni delle differenze \((x_j - x_i)\) e \((y_j - y_i)\) sono uguali (entrambi positivi o entrambi negativi). In parole semplici, $(x_j - x_i)(y_j - y_i)>0$.
+		
+		\item \textbf{Coppia discordante:} \\
+		Una coppia \((x_i, y_i)\) e \((x_j, y_j)\) è \textit{discordante} se i segni delle differenze \((x_j - x_i)\) e \((y_j - y_i)\) sono opposti (uno positivo e l'altro negativo). In parole semplici, $(x_j - x_i)(y_j - y_i)<0$.
+		
+		\item \textbf{Coppia legata:} \\
+		Una coppia è \textit{legata} se \(x_j = x_i\) o \(y_j = y_i\).
+	\end{enumerate}
+	
+	\section*{Formula del Kendall's Tau}
+	
+	Il Kendall's Tau è calcolato come:
+	\[
+	\tau = \frac{C - D}{\binom{n}{2}}
+	\]
+	
+	Dove:
+	\begin{itemize}
+		\item \(C\) è il numero di coppie concordanti.
+		\item \(D\) è il numero di coppie discordanti.
+		\item \(\binom{n}{2} =\frac{n!}{2!(n-2)!}= \frac{n(n-1)}{2}\) è il numero totale di coppie.
+	\end{itemize}
+	
+	Valori di \(\tau\):
+	\begin{itemize}
+		\item \(\tau = 1\): perfetta concordanza.
+		\item \(\tau = -1\): perfetta discordanza.
+		\item \(\tau = 0\): assenza di relazione (casuale).
+	\end{itemize}
+	\section*{Differenza con il coefficiente di correlazione di Spearman}
+	Sebbene sia il tau di Kendall che il rho di Spearman misurino la concordanza, i loro valori possono essere diversi. La relazione tra i due dipende dalla particolare famiglia di copule che descrive la dipendenza tra le variabili. Ci sono disuguaglianze universali che mettono in relazione i due coefficienti, ma la relazione specifica può variare.\\
+	La scelta tra il tau di Kendall e il rho di Spearman dipende spesso dalla specifica applicazione e dalle preferenze personali. Il tau di Kendall è talvolta preferito per la sua interpretazione probabilistica più diretta e la sua robustezza agli outlier. Il rho di Spearman è talvolta preferito per la sua relazione con la correlazione lineare e la sua maggiore sensibilità alle differenze nei ranghi.\\
+	In generale, sia il tau di Kendall che il rho di Spearman sono misure utili della concordanza e possono fornire informazioni preziose sulla dipendenza tra due variabili casuali.
+	\subsection*{Esempio numerico}
+	Consideriamo un caso in cui abbiamo due variabili aleatorie $X$ e $Y$ correlate e vogliamo modellare la loro dipendenza usando una copula di Gumbel. Il parametro della copula di Gumbel,$\theta$, regola la dipendenza tra le variabili e può essere stimato utilizzando il metodo dei momenti.
+	\section*{Passaggi principali}
+	
+	\subsection*{1. Definizione della copula di Gumbel}
+	La copula di Gumbel \(C(u, v; \theta)\) è definita come:
+	\[
+	C(u, v; \theta) = \exp \left( - \left[(-\ln u)^\theta + (-\ln v)^\theta \right]^{1/\theta} \right),
+	\]
+	con \(\theta \geq 1\). Valori più grandi di \(\theta\) indicano una maggiore dipendenza.
+	
+	\subsection*{2. Relazione con il coefficiente di Kendall (\(\tau\))}
+	Per la copula di Gumbel, il parametro \(\theta\) è legato al coefficiente di Kendall (\(\tau\)) dalla formula:
+	\[
+	\tau = 1 - \frac{1}{\theta}.
+	\]
+	
+	Da questa relazione possiamo stimare \(\theta\) se conosciamo \(\tau\).
+	
+	\section*{Esempio con dati simulati}
+	
+	Abbiamo i seguenti dati bivariati:
+	\[
+	(X, Y) = \{(1.2, 1.5), (2.3, 2.8), (1.8, 1.9), (3.0, 3.1), (2.5, 2.7)\}.
+	\]
+	
+	\subsection*{1. Calcolo del coefficiente di Kendall (\(\tau\))}
+	
+	Il coefficiente di Kendall si calcola confrontando tutti i coppie di punti \((X_i, Y_i)\) per determinare se sono concordanti o discordanti.
+	
+	\begin{itemize}
+		\item \textbf{Concordanza:} \((X_i - X_j)(Y_i - Y_j) > 0\)
+		\item \textbf{Discordanza:} \((X_i - X_j)(Y_i - Y_j) < 0\)
+	\end{itemize}
+	
+	Numero di coppie totali:
+	\[
+	\binom{5}{2} = 10.
+	\]
+	
+	Contiamo le coppie concordanti e discordanti:
+	\begin{itemize}
+		\item \textbf{Concordanti:} 9
+		\item \textbf{Discordanti:} 1
+	\end{itemize}
+	
+	Il coefficiente di Kendall è:
+	\[
+	\tau = \frac{\text{Concordanti} - \text{Discordanti}}{\text{Totale coppie}} = \frac{9 - 1}{10} = 0.8
+	\]
+	
+	\subsection*{2. Stima del parametro \(\theta\)}
+	
+	Dalla relazione \(\tau = 1 - \frac{1}{\theta}\), risolviamo per \(\theta\):
+	\[
+	\theta = \frac{1}{1 - \tau} = \frac{1}{1 - 0.8} = 5
+	\]
+	\item \textbf{Stima Bayesiana:}\\
+	La stima bayesiana è un approccio alla statistica basato sul teorema di Bayes, che combina informazioni a priori con dati osservati per aggiornare la nostra conoscenza su un fenomeno incerto. È ampiamente utilizzata in applicazioni come l'apprendimento automatico, l'inferenza statistica e il processo decisionale.\\
+	\section*{Teorema di Bayes}
+	La statistica bayesiana si fonda sul teorema di Bayes, che dice che, data due variabili aleatorie (anche vettoriali) \(\mathbf{X}\) e \(\mathbf{Y}\), allora:
+	\[
+	f(x \mid y) = \frac{f(y, x)}{f(y)} = \frac{f(y \mid x)f(x)}{f(y)},
+	\]
+	dove \(f(y) = \int f(y, x) dx\). Il teorema di Bayes permette di passare dalla condizionata di \(y \mid x\) a quella di \(x \mid y\).
+	
+	Un altro modo di vedere il teorema di Bayes è di tipo "iterativo":
+	\begin{itemize}
+		\item Ho una distribuzione a priori su \(\mathbf{x}\), \(f(x)\).
+		\item Osservo una nuova variabile \(y\), che dipende da \(\mathbf{x}\), tramite \(f(y \mid x)\).
+		\item Allora l'informazione che ho su \(\mathbf{x}\), dopo aver osservato \(y\), cambia in \(f(x \mid y)\).
+	\end{itemize}
+	Consideriamo ora $x=\theta$ parametri di una densità di probabilità (ad esempio $\theta=\mu,\sigma^2 $ se parliamo di una normale), avremo:\\
+	\begin{itemize}
+		\item $f(\theta \mid y)$ è chiamata distribuzione a posteriori di $\theta$
+		\item $f(y \mid \theta)$ la congiunta delle osservazioni, che è possibile vedere anche come la verosomiglianza
+		\item $f(\theta)$  la distribuzione a priori. Questa distribuzione riflette ciò che sappiamo dei
+		parametri prima di osservare il campione y (non dipende da y)
+		\item $f(y)$  costante di normalizzazione. In genere “poco importante” visto che non
+		dipende da $\theta$
+	\end{itemize}
+	
+	La stima bayesiana, specialmente in combinazione con le copule, offre numerosi vantaggi in contesti caratterizzati da dati limitati o mercati volatili. Questi vantaggi emergono dal fatto che il paradigma bayesiano consente di integrare informazioni a priori, aggiornare le credenze in modo dinamico e modellare con precisione dipendenze complesse. Vediamo come si applicano questi punti chiave.
+	\section*{Vantaggi Generali della Stima Bayesiana}
+	
+	\begin{enumerate}
+		\item \textbf{Integrazione di conoscenze a priori} \\
+		La stima bayesiana consente di utilizzare informazioni preesistenti, come stime storiche, conoscenze di esperti o analisi precedenti, per costruire una distribuzione a priori. Questo è particolarmente utile in scenari di dati limitati, dove le osservazioni disponibili non sono sufficienti per una stima affidabile con approcci frequentisti.
+		
+		\item \textbf{Aggiornamento dinamico delle credenze} \\
+		Il paradigma bayesiano permette di aggiornare i parametri di interesse man mano che nuovi dati diventano disponibili, utilizzando il teorema di Bayes. Questo è essenziale in mercati volatili, dove le condizioni possono cambiare rapidamente e i dati devono essere continuamente rivalutati.
+		
+		\item \textbf{Distribuzioni a posteriori invece di stime puntuali} \\
+		La stima bayesiana produce distribuzioni a posteriori che rappresentano l'incertezza sui parametri. Ciò fornisce un quadro probabilistico completo e permette decisioni più robuste rispetto all'uso di stime puntuali (ad esempio, la massima verosimiglianza).
+		
+		\item \textbf{Gestione di modelli complessi} \\
+		Grazie alla capacità di combinare la struttura di dipendenza (copule) con modelli marginali, la stima bayesiana è particolarmente adatta per problemi multivariati o non lineari.
+	\end{enumerate}
+	\section*{Vantaggi Specifici nei Contesti con Copule}
+	
+	Le \textbf{copule} sono utili per modellare le dipendenze tra variabili aleatorie, anche quando queste non seguono distribuzioni gaussiane o hanno comportamenti estremi (ad esempio, correlazioni nelle code). Quando abbinate alla stima bayesiana, i vantaggi si amplificano nei seguenti modi:
+	
+	\begin{enumerate}
+		\item \textbf{Modellazione della dipendenza in contesti di dati limitati} \\
+		Nei mercati finanziari o assicurativi con dati scarsi, l'approccio bayesiano consente di sfruttare distribuzioni a priori sui parametri della copula (ad esempio, il parametro di dipendenza di una copula di Clayton o Gumbel). Questo riduce il rischio di sovrastimare o sottostimare la dipendenza.
+		\begin{itemize}
+			\item \textit{Esempio}: In una copula Archimedea, il parametro di dipendenza può essere stimato in modo bayesiano partendo da una distribuzione a priori basata su correlazioni storiche.
+		\end{itemize}
+		
+		\item \textbf{Robustezza in mercati volatili} \\
+		Le copule consentono di modellare cambiamenti nella dipendenza tra variabili in mercati turbolenti (ad esempio, correlazioni elevate durante crolli di mercato). L'approccio bayesiano aggiorna dinamicamente questi parametri con nuovi dati, migliorando la risposta ai cambiamenti rapidi.
+		\begin{itemize}
+			\item \textit{Esempio}: La correlazione tra asset in un portafoglio finanziario può variare drasticamente durante una crisi. La stima bayesiana con copule Gaussiane o t-student consente di catturare questa variabilità.
+		\end{itemize}
+		
+		\item \textbf{Modellazione delle code} \\
+		Le copule come la Gumbel o la t-student sono in grado di catturare la dipendenza nelle code della distribuzione (eventi estremi). In combinazione con l'approccio bayesiano, è possibile stimare parametri di coda con maggiore affidabilità anche in presenza di pochi dati osservati.
+		\begin{itemize}
+			\item \textit{Esempio}: Nelle assicurazioni, la correlazione tra grandi perdite (\textit{tail dependence}) può essere stimata con copule t-student usando una distribuzione a priori informativa basata su esperienze precedenti.
+		\end{itemize}
+		
+		\item \textbf{Riduzione del rischio di overfitting} \\
+		La stima bayesiana utilizza distribuzioni a priori regolarizzanti, che prevengono l'overfitting tipico nei modelli di dipendenza con molti parametri. Questo è particolarmente importante in contesti con dati limitati.
+	\end{enumerate}
+	\section*{Applicazioni Specifiche}
+	
+	\begin{enumerate}
+		\item \textbf{Finanza (Portafogli e Rischio)} \\
+		\begin{itemize}
+			\item La stima bayesiana con copule permette di modellare la dipendenza tra rendimenti degli asset in portafoglio, considerando eventi estremi (correlazioni nelle code).
+			\item È utile per stimare la \textit{Value at Risk} (VaR) e il \textit{Conditional VaR} (CVaR) in mercati volatili.
+		\end{itemize}
+		
+		\item \textbf{Assicurazioni (Rischi Multivariati)} \\
+		\begin{itemize}
+			\item Modellare la dipendenza tra sinistri assicurativi (ad esempio, danni da eventi naturali correlati).
+			\item L'approccio bayesiano consente di incorporare conoscenze a priori su rischi rari ma severi.
+		\end{itemize}
+		
+		\item \textbf{Analisi Multivariata e Dati Mancanti} \\
+		\begin{itemize}
+			\item Quando alcune variabili o dati sono mancanti, le copule e la stima bayesiana consentono di stimare la dipendenza tra variabili osservate e non osservate.
+		\end{itemize}
+	\end{enumerate}
 \end{itemize}
 
 
