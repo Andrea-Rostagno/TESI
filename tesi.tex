@@ -391,7 +391,7 @@ L'importanza della stima risiede nella capacità di rappresentare accuratamente 
 Per stimare i parametri delle copule, esistono diversi metodi, ciascuno con vantaggi e limitazioni:
 \begin{enumerate}
 	\item \textbf{Metodo della Massima Verosimiglianza (MLE - Maximum Likelihood Estimation):} Massimizzando la funzione di verosimiglianza costruita sui dati, si ottengono degli stimatori per i vari parametri.
-	\item \textbf{Metodo dei Momenti} Confronta i momenti osservati con qulli torici: $\frac{\sum_{i=1}^n X_i^1}{n} = \mu_1$, $\frac{\sum_{i=1}^n X_i^2}{n} = \mu_2
+	\item \textbf{Metodo dei Momenti} Confronta i momenti osservati con quelli teorici: $\frac{\sum_{i=1}^n X_i^1}{n} = \mu_1$, $\frac{\sum_{i=1}^n X_i^2}{n} = \mu_2
 	$,  $\frac{\sum_{i=1}^n X_i^p}{n} = \mu_p$
 	\item \textbf{Metodi Bayesiani: }Utilizzano distribuzioni a priori per stimare i parametri delle copule e aggiornano le stime con i dati osservati.
 \end{enumerate}
@@ -750,7 +750,32 @@ Nelle prossime pagine mostreremo un'analisi dettagliata dei vari metodi di stima
 	\end{enumerate}
 \end{itemize}
 
-
+\noindent\textbf{4.3 Implementazione Pratica: Applicazione ai Dati del DAX} \\
+\begin{itemize}
+	\item \textbf{Preparazione dei dati:}\\
+	Come già spiegato nella parte 3, il nostro dataset contiene dati storici sul DAX, che rappresentano prezzi o indici di mercato rilevanti. La raccolta dati fornisce i valori di Open, High, Low, Close partendo dal giorno 02/01/2020 ore 01:15:00 e terminando con il giorno 03/03/2022 ore 09:14:00. \\
+	Una volta terminata la raccolta dati si prosegue "pulendo" il dataset da eventuali valori mancanti o outlier in modo da ottenere stime più precise.\\
+	A noi interessa lavorare con il rendimento logaritmico e non con i valori di mercato di Open, High, Low, Close (ci serve sapere di quanto aumenta o diminuisce il rendimento) per cui lo andiamo a calcolare con il comando:\\
+	\begin{verbatim}
+		log_returns = np.log(filtered_data / 
+		filtered_data.shift(1)).dropna()
+	\end{verbatim}
+	Successivamente i dati vengono normalizzati ed uniformati per applicare al meglio i modelli di copula.\\
+	Alcuni comandi usati nella parte 3 per la pulizia e la normalizzazione dei dati:\\
+	\begin{verbatim}
+		data.dropna()
+		
+		data[~((data < (Q1 - 1.5 * IQR)) | 
+		 (data > (Q3 + 1.5 * IQR))).any(axis=1)]
+		
+		(log_returns - log_returns.mean())
+		/ log_returns.std()
+		
+		norm.cdf(standardized_data)
+	\end{verbatim}
+	\item \textbf{Stima dei Parametri per Diverse Copule:}\\
+	
+\end{itemize}
 
 
 

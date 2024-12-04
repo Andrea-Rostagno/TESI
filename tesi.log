@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.26 (MiKTeX 24.4) (preloaded format=pdflatex 2024.7.4)  22 NOV 2024 09:26
+This is pdfTeX, Version 3.141592653-2.6-1.40.26 (MiKTeX 24.4) (preloaded format=pdflatex 2024.7.4)  4 DEC 2024 13:10
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -500,6 +500,12 @@ a fun-zione di verosimiglianza
  []
 
 
+Overfull \hbox (4.09996pt too wide) in paragraph at lines 394--396
+[]\OT1/cmr/bx/n/12 Metodo dei Mo-menti \OT1/cmr/m/n/12 Con-fronta i mo-menti os
+-ser-vati con quelli teorici:
+ []
+
+
 Underfull \hbox (badness 10000) in paragraph at lines 398--404
 
  []
@@ -653,8 +659,30 @@ Underfull \hbox (badness 10000) in paragraph at lines 746--748
  []
 
 
+Underfull \hbox (badness 10000) in paragraph at lines 753--755
 
-[31] (tesi.aux)
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 755--759
+
+ []
+
+
+
+[31]
+Underfull \hbox (badness 10000) in paragraph at lines 763--765
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 776--777
+
+ []
+
+
+
+[32] (tesi.aux)
  ***********
 LaTeX2e <2024-06-01> patch level 2
 L3 programming layer <2024-05-27>
@@ -691,9 +719,9 @@ MiKTeX/fonts/type1/public/amsfonts/cm/cmsy6.pfb><C:/Users/andre/AppData/Local/P
 rograms/MiKTeX/fonts/type1/public/amsfonts/cm/cmsy8.pfb><C:/Users/andre/AppData
 /Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmti12.pfb><C:/Users/andr
 e/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmtt12.pfb>
-Output written on tesi.pdf (31 pages, 401225 bytes).
+Output written on tesi.pdf (32 pages, 402866 bytes).
 PDF statistics:
- 198 PDF objects out of 1000 (max. 8388607)
+ 201 PDF objects out of 1000 (max. 8388607)
  0 named destinations out of 1000 (max. 500000)
  26 words of extra memory for PDF output out of 10000 (max. 10000000)
 
